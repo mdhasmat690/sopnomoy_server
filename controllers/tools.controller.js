@@ -396,32 +396,60 @@ module.exports.updateCollection = async (req, res, next) => {
     const { id } = req.params;
     const objects = req.body;
 
-    console.log(objects);
-
     if (!ObjectId.isValid(id)) {
       return res
         .status(400)
         .json({ success: false, error: "Not a valid collection id." });
     }
 
-    const result = await db
+    const collection = await db
       .collection("collection")
-      .updateOne(
-        { _id: new ObjectId(id) },
-        { $push: { collections: objects } }
-      );
+      .findOne({ _id: new ObjectId(id) });
 
-    if (result.modifiedCount === 0) {
-      return res.status(400).send({
-        success: false,
-        error: `Failed to update collection with id: ${id}`,
+    const isExisit = collection?.collections?.find(
+      (data) => data.mainServiceId === objects.mainServiceId
+    );
+
+    if (isExisit) {
+      const result = await db
+        .collection("collection")
+        .updateOne(
+          { _id: new ObjectId(id) },
+          { $pull: { collections: objects } }
+        );
+
+      if (result?.modifiedCount === 0) {
+        return res.status(400).send({
+          success: false,
+          error: `Failed to update collection with id: ${id}`,
+        });
+      }
+
+      res.send({
+        success: true,
+
+        id: `delete with id ${id}`,
+      });
+    } else {
+      const Updataresult = await db
+        .collection("collection")
+        .updateOne(
+          { _id: new ObjectId(id) },
+          { $push: { collections: objects } }
+        );
+
+      if (Updataresult?.modifiedCount === 0) {
+        return res.status(400).send({
+          success: false,
+          error: `Failed to update collection with id: ${id}`,
+        });
+      }
+
+      res.send({
+        success: true,
+        id: id,
       });
     }
-
-    res.send({
-      success: true,
-      message: `Collection updated with id: ${id}`,
-    });
   } catch (error) {
     next(error);
   }

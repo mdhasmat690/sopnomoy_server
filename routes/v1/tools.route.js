@@ -2,8 +2,6 @@ const express = require("express");
 
 const toolsControllers = require("../../controllers/tools.controller");
 const ChatControllers = require("../../controllers/chat.controller");
-const limiter = require("../../middleware/limiter");
-const viewCount = require("../../middleware/veiwCount");
 
 const router = express.Router();
 
