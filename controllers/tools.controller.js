@@ -39,39 +39,98 @@ module.exports.updateService = async (req, res, next) => {
 
     let result;
 
-    // Check if the hobbies field exists and its data type
     const tool = await db
       .collection("tools")
       .findOne({ _id: new ObjectId(id) });
-    if (tool && tool.likesUser && !Array.isArray(tool.likesUser)) {
-      // If hobbies field exists but is not an array, set it to an empty array
-      await db
-        .collection("tools")
-        .updateOne({ _id: new ObjectId(id) }, { $set: { likesUser: [] } });
+
+    if (data?.likesUser) {
+      if (!result) {
+        if (tool && tool.likesUser && !Array.isArray(tool.likesUser)) {
+          await db
+            .collection("tools")
+            .updateOne({ _id: new ObjectId(id) }, { $set: { likesUser: [] } });
+        }
+
+        const isHobbyExist = tool?.likesUser?.includes(data.likesUser);
+        if (isHobbyExist) {
+          result = await db.collection("tools").updateOne(
+            { _id: new ObjectId(id) },
+            {
+              $pull: { likesUser: data.likesUser },
+            }
+          );
+        } else {
+          result = await db.collection("tools").updateOne(
+            { _id: new ObjectId(id) },
+            {
+              $push: { likesUser: data.likesUser },
+            }
+          );
+        }
+
+        return res
+          .status(400)
+          .send({ success: false, error: "Couldn't update the tool" });
+      }
+    } else if (data?.collection) {
+      if (!result) {
+        if (tool && tool.collection && !Array.isArray(tool.collection)) {
+          await db
+            .collection("tools")
+            .updateOne({ _id: new ObjectId(id) }, { $set: { collection: [] } });
+        }
+
+        const isHobbyExist = tool?.collection?.includes(data.collection);
+        if (isHobbyExist) {
+          result = await db.collection("tools").updateOne(
+            { _id: new ObjectId(id) },
+            {
+              $pull: { collection: data.collection },
+            }
+          );
+        } else {
+          result = await db.collection("tools").updateOne(
+            { _id: new ObjectId(id) },
+            {
+              $push: { collection: data.collection },
+            }
+          );
+        }
+
+        return res
+          .status(400)
+          .send({ success: false, error: "Couldn't update the tool" });
+      }
     }
 
-    const isHobbyExist = tool?.likesUser?.includes(data.likesUser);
-    if (isHobbyExist) {
-      result = await db.collection("tools").updateOne(
-        { _id: new ObjectId(id) },
-        {
-          $pull: { likesUser: data.likesUser },
-        }
-      );
-    } else {
-      result = await db.collection("tools").updateOne(
-        { _id: new ObjectId(id) },
-        {
-          $push: { likesUser: data.likesUser },
-        }
-      );
-    }
+    /* if (!result) {
+      if (tool && tool.likesUser && !Array.isArray(tool.likesUser)) {
+        await db
+          .collection("tools")
+          .updateOne({ _id: new ObjectId(id) }, { $set: { likesUser: [] } });
+      }
 
-    if (!result) {
+      const isHobbyExist = tool?.likesUser?.includes(data.likesUser);
+      if (isHobbyExist) {
+        result = await db.collection("tools").updateOne(
+          { _id: new ObjectId(id) },
+          {
+            $pull: { likesUser: data.likesUser },
+          }
+        );
+      } else {
+        result = await db.collection("tools").updateOne(
+          { _id: new ObjectId(id) },
+          {
+            $push: { likesUser: data.likesUser },
+          }
+        );
+      }
+
       return res
         .status(400)
         .send({ success: false, error: "Couldn't update the tool" });
-    }
+    } */
 
     res.send({
       success: true,
@@ -410,6 +469,8 @@ module.exports.updateCollection = async (req, res, next) => {
       (data) => data.mainServiceId === objects.mainServiceId
     );
 
+    console.log(isExisit);
+
     if (isExisit) {
       const result = await db
         .collection("collection")
@@ -431,12 +492,13 @@ module.exports.updateCollection = async (req, res, next) => {
         id: `delete with id ${id}`,
       });
     } else {
-      const Updataresult = await db
-        .collection("collection")
-        .updateOne(
-          { _id: new ObjectId(id) },
-          { $push: { collections: objects } }
-        );
+      const Updataresult = await db.collection("collection").updateOne(
+        { _id: new ObjectId(id) },
+        {
+          $set: { timestamp: new Date().getTime() },
+          $push: { collections: objects },
+        }
+      );
 
       if (Updataresult?.modifiedCount === 0) {
         return res.status(400).send({
