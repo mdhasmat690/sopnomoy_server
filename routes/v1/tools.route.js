@@ -12,7 +12,16 @@ router
   .post(toolsControllers.createCollection)
   .get(toolsControllers.getCollection);
 
-router.route("/collection/:id").put(toolsControllers.updateCollection);
+router
+  .route("/collection/:id")
+  .put(toolsControllers.updateCollection)
+  .get(toolsControllers.getSingleCollection);
+
+router
+  .route("/collections/collection/:id")
+  .get(toolsControllers.getSingleCollectionItem);
+
+/*  */
 
 /* chat controller */
 router

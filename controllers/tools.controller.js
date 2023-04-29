@@ -533,6 +533,51 @@ module.exports.getCollection = async (req, res, next) => {
   }
 };
 
+module.exports.getSingleCollection = async (req, res, next) => {
+  try {
+    const db = getDb();
+    const { id } = req.params;
+
+    if (!ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Not a valid tool id." });
+    }
+
+    const data = await db
+      .collection("collection")
+      .findOne({ _id: new ObjectId(id) });
+
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports.getSingleCollectionItem = async (req, res, next) => {
+  try {
+    const db = getDb();
+    const { id } = req.params;
+
+    const data = await db
+      .collection("collection")
+      .findOne({ _id: new ObjectId(id) });
+
+    const objectIds = data?.collections?.map((id) => {
+      return new ObjectId(id?.mainServiceId);
+    });
+
+    const newData = await db
+      .collection("tools")
+      .find({ _id: { $in: objectIds } })
+      .toArray();
+
+    res.status(200).json({ success: true, newData });
+  } catch (error) {
+    next(error);
+  }
+};
+
 /* 
 module.exports.getUserDetail = async (req, res, next) => {
   try {
