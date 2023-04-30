@@ -68,9 +68,9 @@ module.exports.updateService = async (req, res, next) => {
           );
         }
 
-        return res
+        /*      return res
           .status(400)
-          .send({ success: false, error: "Couldn't update the tool" });
+          .send({ success: false, error: "Couldn't update the like tool" }); */
       }
     } else if (data?.collection) {
       if (!result) {
@@ -97,44 +97,21 @@ module.exports.updateService = async (req, res, next) => {
           );
         }
 
-        return res
-          .status(400)
-          .send({ success: false, error: "Couldn't update the tool" });
+        /* return res.status(400).send({
+          success: false,
+          error: "Couldn't update collection the tool",
+        }); */
       }
     }
 
-    /* if (!result) {
-      if (tool && tool.likesUser && !Array.isArray(tool.likesUser)) {
-        await db
-          .collection("tools")
-          .updateOne({ _id: new ObjectId(id) }, { $set: { likesUser: [] } });
-      }
-
-      const isHobbyExist = tool?.likesUser?.includes(data.likesUser);
-      if (isHobbyExist) {
-        result = await db.collection("tools").updateOne(
-          { _id: new ObjectId(id) },
-          {
-            $pull: { likesUser: data.likesUser },
-          }
-        );
-      } else {
-        result = await db.collection("tools").updateOne(
-          { _id: new ObjectId(id) },
-          {
-            $push: { likesUser: data.likesUser },
-          }
-        );
-      }
-
-      return res
+    if (!result.modifiedCount) {
+      res
         .status(400)
         .send({ success: false, error: "Couldn't update the tool" });
-    } */
-
+    }
     res.send({
       success: true,
-      message: `Successfully updated the tool`,
+      message: `Successfully updated the tool like or collection`,
     });
   } catch (error) {
     next(error);
@@ -416,9 +393,18 @@ module.exports.getAllLikeServices = async (req, res, next) => {
     const db = getDb();
     const { email } = req.params;
 
-    const data = await db
+    const filterData = await db
       .collection("like")
       .find({ likerEmail: email })
+      .toArray();
+
+    const objectIds = filterData?.map((id) => {
+      return new ObjectId(id?.productMainId);
+    });
+
+    const data = await db
+      .collection("tools")
+      .find({ _id: { $in: objectIds } })
       .toArray();
 
     res.status(200).json({ success: true, data });
