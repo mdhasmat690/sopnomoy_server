@@ -11,12 +11,18 @@ const http = require("http");
 const socketIO = require("socket.io");
 const server = http.createServer(app);
 const io = socketIO(server);
+// console.log(io, "from socket");
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.static("public"));
 app.set("view engine", "ejs");
@@ -34,6 +40,9 @@ dbConnection.connectToServer();
 // Set up Socket.io event handlers here
 io.on("connection", (socket) => {
   console.log(`Socket ${socket.id} connected.`);
+  socket.emit("test event", () => {
+    console.log("test event fired!");
+  });
 
   socket.on("disconnect", () => {
     console.log(`Socket ${socket.id} disconnected.`);

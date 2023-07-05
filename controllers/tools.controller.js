@@ -24,6 +24,37 @@ module.exports.saveATool = async (req, res, next) => {
   }
 };
 
+module.exports.deleteService = async (req, res, next) => {
+  try {
+    const db = getDb();
+    const { id } = req.params;
+
+    if (!ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Not a valid tool id." });
+    }
+
+    const result = await db
+      .collection("tools")
+      .deleteOne({ _id: new ObjectId(id) });
+
+    if (!result.deletedCount) {
+      return res
+        .status(400)
+        .send({ status: false, error: "Something went wrong!" });
+    }
+    console.log(result);
+
+    res.send({
+      success: true,
+      id: id,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports.updateService = async (req, res, next) => {
   try {
     const db = getDb();
@@ -67,10 +98,6 @@ module.exports.updateService = async (req, res, next) => {
             }
           );
         }
-
-        /*      return res
-          .status(400)
-          .send({ success: false, error: "Couldn't update the like tool" }); */
       }
     } else if (data?.collection) {
       if (!result) {
@@ -112,6 +139,37 @@ module.exports.updateService = async (req, res, next) => {
     res.send({
       success: true,
       message: `Successfully updated the tool like or collection`,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports.updateServicesCollectionMany = async (req, res, next) => {
+  try {
+    const db = getDb();
+
+    const { ids } = req.body;
+    const data = req.body.data;
+    const objectIds = ids.map((id) => new ObjectId(id));
+    console.log(data.collection);
+
+    const result = await db.collection("tools").updateMany(
+      { _id: { $in: objectIds } }, // Use $in operator to match multiple ids
+      {
+        $pull: { collection: data.collection },
+      }
+    );
+    console.log(result);
+
+    if (!result.modifiedCount) {
+      res
+        .status(400)
+        .send({ success: false, error: "Couldn't update the tools" });
+    }
+    res.send({
+      success: true,
+      message: "Successfully service collection updated ",
     });
   } catch (error) {
     next(error);
@@ -435,6 +493,71 @@ module.exports.createCollection = async (req, res, next) => {
   }
 };
 
+module.exports.updateCollectionName = async (req, res, next) => {
+  try {
+    const db = getDb();
+    const collection = req.body;
+
+    const { id } = req.params;
+
+    if (!ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Not a valid collection id." });
+    }
+
+    const result = await db
+      .collection("collection")
+      .updateOne({ _id: new ObjectId(id) }, { $set: collection });
+
+    if (!result.modifiedCount) {
+      return res
+        .status(400)
+        .send({ status: false, error: "Something went wrong!" });
+    }
+
+    res.send({
+      success: true,
+      id: id,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports.deleteCollection = async (req, res, next) => {
+  try {
+    const db = getDb();
+    const collection = req.body;
+
+    const { id } = req.params;
+
+    if (!ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Not a valid collection id." });
+    }
+
+    const result = await db
+      .collection("collection")
+      .deleteOne({ _id: new ObjectId(id) });
+
+    /*   if (!result.modifiedCount) {
+      return res
+        .status(400)
+        .send({ status: false, error: "Something went wrong!" });
+    } */
+    console.log(result);
+
+    res.send({
+      success: true,
+      id: id,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports.updateCollection = async (req, res, next) => {
   try {
     const db = getDb();
@@ -454,8 +577,6 @@ module.exports.updateCollection = async (req, res, next) => {
     const isExisit = collection?.collections?.find(
       (data) => data.mainServiceId === objects.mainServiceId
     );
-
-    console.log(isExisit);
 
     if (isExisit) {
       const result = await db

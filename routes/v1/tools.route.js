@@ -14,14 +14,14 @@ router
 
 router
   .route("/collection/:id")
+  .delete(toolsControllers.deleteCollection)
   .put(toolsControllers.updateCollection)
-  .get(toolsControllers.getSingleCollection);
+  .get(toolsControllers.getSingleCollection)
+  .patch(toolsControllers.updateCollectionName);
 
 router
   .route("/collections/collection/:id")
   .get(toolsControllers.getSingleCollectionItem);
-
-/*  */
 
 /* chat controller */
 router
@@ -42,7 +42,8 @@ router
 router
   .route("/postProject")
   .post(toolsControllers.saveATool)
-  .get(toolsControllers.getAllTools);
+  .get(toolsControllers.getAllTools)
+  .put(toolsControllers.updateServicesCollectionMany);
 
 router.route("/postProject/userLikes").get(toolsControllers.getAllLikeServices);
 
@@ -52,7 +53,8 @@ router
   .route("/postProject/:id")
   .get(toolsControllers.getSingleTool)
   .patch(toolsControllers.updateService)
-  .put(toolsControllers.watchServices);
+  .put(toolsControllers.watchServices)
+  .delete(toolsControllers.deleteService);
 
 router
   .route("/postProject/related/:email")
